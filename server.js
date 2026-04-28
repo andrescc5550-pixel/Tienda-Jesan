@@ -9,11 +9,11 @@ app.use(express.json());
 
 // 🔥 CONEXIÓN CORREGIDA
 const db = mysql.createConnection({
-  host: "127.0.0.1", // 👈 CAMBIO IMPORTANTE
-  user: "root",
-  password: "",
-  database: "inventario",
-  port: 3306 // 👈 usa el puerto que pusiste en XAMPP
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
+  port: process.env.MYSQLPORT
 });
 
 db.connect(err => {
