@@ -9,18 +9,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// 🔥 CONEXIÓN MEJORADA PARA RAILWAY
+// 🔥 CONEXIÓN PARA RAILWAY (Usa variables de entorno)
 const db = mysql.createPool({
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
-  port: Number(process.env.MYSQLPORT) || 3306, // Convertimos a número por seguridad
+  port: Number(process.env.MYSQLPORT) || 3306,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
 });
-// Probar conexión
+
 db.getConnection((err, connection) => {
   if (err) {
     console.error("❌ Error al conectar a Railway:", err);
@@ -30,7 +30,7 @@ db.getConnection((err, connection) => {
   connection.release();
 });
 
-// Rutas (He simplificado la referencia a db usando .query directamente del pool)
+// RUTAS CRUD
 app.get("/productos", (req, res) => {
   db.query("SELECT * FROM productos", (err, results) => {
     if (err) return res.status(500).json(err);
@@ -50,14 +50,19 @@ app.post("/productos", (req, res) => {
   );
 });
 
-app.put("/productos/:id", (req, res) => {
-  const { nombre, precio, cantidad, imagen, descripcion } = req.body;
+// 🔥 RUTA PARA COMPRAR (Resta stock)
+app.put("/comprar/:id", (req, res) => {
+  const { cantidad } = req.body;
+  const { id } = req.params;
   db.query(
-    "UPDATE productos SET nombre=?, precio=?, cantidad=?, imagen=?, descripcion=? WHERE id=?",
-    [nombre, precio, cantidad, imagen, descripcion, req.params.id],
-    (err) => {
+    "UPDATE productos SET cantidad = cantidad - ? WHERE id = ? AND cantidad >= ?",
+    [cantidad, id, cantidad],
+    (err, result) => {
       if (err) return res.status(500).json(err);
-      res.json({ mensaje: "Actualizado" });
+      if (result.affectedRows === 0) {
+        return res.status(400).json({ mensaje: "No hay suficiente stock" });
+      }
+      res.json({ mensaje: "✅ Compra exitosa" });
     }
   );
 });
@@ -69,8 +74,7 @@ app.delete("/productos/:id", (req, res) => {
   });
 });
 
-// El puerto debe ser dinámico para Render
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
+  console.log(`🚀 Servidor en puerto ${PORT}`);
 });
