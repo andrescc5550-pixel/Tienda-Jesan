@@ -1,4 +1,4 @@
-// 🔗 Detectar automáticamente la API
+// etectar automáticamente la API
 // Si estás en tu PC usa localhost, si no, usa la URL real de Render
 const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
     ? "http://localhost:3000/productos"
@@ -7,7 +7,7 @@ const API = window.location.hostname === "localhost" || window.location.hostname
 let editando = false;
 let idEditar = null;
 
-// 🔹 CARGAR PRODUCTOS
+// CARGAR PRODUCTOS
 async function cargarProductos() {
     try {
         const res = await fetch(API);
@@ -18,14 +18,14 @@ async function cargarProductos() {
 
         data.forEach(p => {
             const div = document.createElement("div");
-            div.className = "producto"; // Asegúrate que esta clase esté en tu CSS
+            div.className = "producto"; 
 
             div.innerHTML = `
                 <div style="padding: 10px; border-bottom: 1px solid #eee; margin-bottom: 10px;">
                     <span>
                         <strong>${p.nombre}</strong> - Q${p.precio} - Stock: ${p.cantidad}<br>
                         <small>${p.descripcion || "Sin descripción"}</small><br>
-                        <small style="color: gray; font-size: 10px;">Imagen: ${p.imagen ? "✅ URL presente" : "❌ Sin imagen"}</small>
+                        <small style="color: gray; font-size: 10px;">Imagen: ${p.imagen ? "URL presente" : "Sin imagen"}</small>
                     </span>
                     <div class="botones" style="margin-top: 10px;">
                         <button class="btn-editar" style="background: orange; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px;">Editar</button>
@@ -80,7 +80,7 @@ document.getElementById("formulario").addEventListener("submit", async (e) => {
         });
 
         if (res.ok) {
-            alert(editando ? "✅ Producto actualizado" : "✅ Producto agregado");
+            alert(editando ? "Producto actualizado" : "Producto agregado");
             editando = false;
             idEditar = null;
             document.querySelector(".btn-agregar").innerText = "Guardar"; // Restaurar texto del botón
@@ -130,5 +130,5 @@ async function eliminar(id) {
     }
 }
 
-// 🔹 INICIAL
+// INICIAL
 cargarProductos();
