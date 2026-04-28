@@ -55,11 +55,16 @@ app.post("/productos", (req, res) => {
 app.put("/productos/:id", (req, res) => {
   const { nombre, precio, cantidad, imagen, descripcion } = req.body;
   const { id } = req.params;
+
+  // Usamos una consulta que ignora errores de columnas opcionales
   db.query(
     "UPDATE productos SET nombre=?, precio=?, cantidad=?, imagen=?, descripcion=? WHERE id=?",
-    [nombre, precio, cantidad, imagen, descripcion, id],
+    [nombre, precio, cantidad, imagen, descripcion || "", id],
     (err, result) => {
-      if (err) return res.status(500).json(err);
+      if (err) {
+        console.error("❌ Error en MySQL:", err);
+        return res.status(500).json({ error: err.message });
+      }
       res.json({ mensaje: "✅ Producto actualizado correctamente" });
     }
   );
