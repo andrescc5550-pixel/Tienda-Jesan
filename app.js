@@ -1,7 +1,13 @@
-const API = "http://localhost:3000/productos";
+// Detectar automáticamente si estamos en Render o en Local
+const API = window.location.hostname === "localhost" 
+    ? "http://localhost:3000/productos" 
+    : "/productos"; // En Render, se usa la ruta relativa
 
 let editando = false;
 let idEditar = null;
+
+// El resto de tu función cargarProductos(), eliminar(), etc., se queda IGUAL
+// solo asegúrate de que usen la variable 'API' que definimos arriba.
 
 // 🔹 CARGAR PRODUCTOS
 async function cargarProductos() {
