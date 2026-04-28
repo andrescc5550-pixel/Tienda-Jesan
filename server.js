@@ -1,12 +1,20 @@
 const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+// 🔥 SERVIR ARCHIVOS
+app.use(express.static(__dirname));
+
+// 🔥 RUTA PRINCIPAL
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index tienda.html"));
+});
 // 🔥 CONEXIÓN CORREGIDA
 const db = mysql.createConnection({
   host: process.env.MYSQLHOST,
