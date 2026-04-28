@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Login Inventario - JESAN</title>
+<link rel="stylesheet" href="estilo.css">
+</head>
+
+<body style="display:flex; justify-content:center; align-items:center; height:100vh;">
+
+<div class="form-card">
+
+  <h2>Acceso al Inventario</h2>
+  <p class="subtexto">Solo personal autorizado</p>
+
+  <input type="text" id="usuario" placeholder="Usuario">
+  <input type="password" id="password" placeholder="Contraseña">
+
+  <button onclick="login()">Ingresar</button>
+
+</div>
+
+<script>
+function login() {
+  const user = document.getElementById("usuario").value;
+  const pass = document.getElementById("password").value;
+
+  if (user === "admin" && pass === "1234") {
+    localStorage.setItem("auth", "true"); // 🔥 guarda sesión
+    window.location.href = "index.html";
+  } else {
+    alert("Acceso denegado");
+  }
+}
+</script>
+<button onclick="logout()">Cerrar sesión</button>
+
+<script>
+function logout() {
+  localStorage.removeItem("auth");
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

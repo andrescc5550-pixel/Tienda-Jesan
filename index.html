@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel Inventario</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  
+<script>
+if (!localStorage.getItem("auth")) {
+  window.location.href = "login.html";
+}
+</script>
+
+<div class="container">
+  <h1>Panel de Inventario JESAN</h1>
+
+  <div class="card">
+    <form id="formulario">
+      <input type="text" id="nombre" placeholder="Nombre" required>
+      <input type="number" id="precio" placeholder="Precio" required>
+      <input type="number" id="cantidad" placeholder="Cantidad" required>
+
+      <!-- 🔥 CAMBIO AQUÍ -->
+      <input type="text" id="imagen" placeholder="URL de imagen (https://...)">
+
+      <input type="text" id="descripcion" placeholder="Descripción del producto">
+      <button class="btn-agregar" type="submit">Guardar</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Productos</h3>
+    <div id="lista"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

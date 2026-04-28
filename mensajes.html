@@ -1,0 +1,53 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Jesan - Mensajes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 🔥 IMPORTANTE -->
+  <link rel="stylesheet" href="estilo.css">
+</head>
+
+<body>
+
+<header class="header">
+  <img src="img/jesan.png" alt="Logo Jesan" class="logo">
+  <h1>JESAN</h1>
+</header>
+
+<div class="contenedor">
+
+  <!-- FORMULARIO -->
+  <div class="lado-izquierdo">
+    <form id="formulario" class="form-card">
+
+      <h2>Deja tu mensaje</h2>
+      <p class="subtexto">Comparte tu experiencia con nuestros tejidos</p>
+
+      <input type="text" id="nombre" placeholder="Tu nombre">
+
+      <textarea id="mensaje" placeholder="Escribe tu mensaje..."></textarea>
+
+      <button type="submit">Enviar mensaje</button>
+
+      <a href="index tienda.html" class="btn-volver">← Volver a la tienda</a>
+
+    </form>
+  </div>
+
+  <!-- MENSAJES -->
+  <div class="lado-derecho">
+    <h2>Mensajes</h2>
+    <div id="lista"></div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal">
+  <div class="modal-content" id="contenidoModal"></div>
+</div>
+
+<script type="module" src="aplicacion.js"></script>
+
+</body>
+</html>
