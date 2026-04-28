@@ -9,18 +9,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// CONEXIÓN USANDO POOL (Mejor para producción)
+// 🔥 CONEXIÓN MEJORADA PARA RAILWAY
 const db = mysql.createPool({
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT || 3306,
+  port: Number(process.env.MYSQLPORT) || 3306, // Convertimos a número por seguridad
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
 });
-
 // Probar conexión
 db.getConnection((err, connection) => {
   if (err) {
