@@ -2,163 +2,81 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jesan GT</title>
+    <title>Jesan GT - Tienda</title>
     <link rel="stylesheet" href="estilo.css">
-
-    <style>
-        /* 🔹 RESTAURADO: OCULTAR DESCRIPCIÓN */
-        .descripcion {
-            display: none;
-        }
-
-        .descripcion.activo {
-            display: block;
-        }
-
-        /* Aseguramos que el modal se vea bien */
-        .modal {
-            display: none; 
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.8);
-            justify-content: center;
-            align-items: center;
-        }
-    </style>
 </head>
-
 <body>
+    <header class="header">
+        <img src="img/jesan.png" class="logo">
+        <h1>JESAN</h1>
+    </header>
 
-<header class="header">
-    <img src="img/jesan.png" class="logo">
-    <h1>JESAN</h1>
-</header>
+    <main>
+        <section class="productos" id="productos"></section>
+    </main>
 
-<main>
-    <section class="intro">
-        <h2>La elegancia también es parte de tu personalidad</h2>
-    </section>
-
-    <section class="productos" id="productos"></section>
-
-    <div class="btn-container">
-        <a href="mensajes.html" class="btn">Dejar un mensaje</a>
+    <div id="modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); align-items:center; justify-content:center;">
+        <div style="background:white; padding:20px; border-radius:10px; text-align:center; max-width:400px;">
+            <img id="imgModal" style="width:100%">
+            <h2 id="tituloModal"></h2>
+            <p id="precioModal"></p>
+            <input type="number" id="cantidadComprar" placeholder="¿Cuántos?" style="width:80%; padding:10px; margin:10px 0;">
+            <br>
+            <button onclick="comprar()" style="background:green; color:white; border:none; padding:10px 20px; cursor:pointer;">Confirmar Compra</button>
+            <button onclick="document.getElementById('modal').style.display='none'" style="background:red; color:white; border:none; padding:10px 20px; cursor:pointer; margin-left:10px;">Cerrar</button>
+        </div>
     </div>
-</main>
 
-<div class="modal" id="modal">
-    <div class="modal-content">
-        <img id="imgModal">
-        <h2 id="tituloModal"></h2>
-        <p id="descModal"></p>
-        <p id="precioModal"></p>
+    <script>
+        const API = "https://tienda-jesan.onrender.com/productos";
+        let productoActual = null;
 
-        <input type="number" id="cantidadComprar" placeholder="Cantidad">
-        <button class="btn-comprar" onclick="comprar()">Comprar</button>
-    </div>
-</div>
+        async function cargarProductos() {
+            try {
+                const res = await fetch(API);
+                const data = await res.json();
+                const contenedor = document.getElementById("productos");
+                contenedor.innerHTML = "";
 
-<script>
-    // 🔥 URL DE RENDER (Manteniendo la funcionalidad nueva)
-    const API = "https://tienda-jesan.onrender.com/productos";
-    let productoActual = null;
-
-    // 🔹 CARGAR PRODUCTOS (Con tu diseño de tarjetas original)
-    async function cargarProductos() {
-        try {
-            const res = await fetch(API);
-            const data = await res.json();
-
-            const contenedor = document.getElementById("productos");
-            contenedor.innerHTML = "";
-
-            data.forEach(p => {
-                if (Number(p.cantidad) <= 0) return;
-
-                const card = document.createElement("div");
-                card.className = "card";
-
-                card.innerHTML = `
-                    <img src="${p.imagen || 'https://via.placeholder.com/300'}">
-                    <h3>${p.nombre}</h3>
-                    <p class="descripcion">${p.descripcion || "Producto de alta calidad"}</p>
-                    <span>Q${p.precio}</span>
-                    <p style="font-size: 12px; color: gray;">Disponibles: ${p.cantidad}</p>
-                `;
-
-                // 🔥 CLICK PARA MOSTRAR DESCRIPCIÓN
-                card.addEventListener("click", (e) => {
-                    if (e.target.classList.contains("descripcion")) return;
-                    const desc = card.querySelector(".descripcion");
-                    desc.classList.toggle("activo");
+                data.forEach(p => {
+                    if (p.cantidad <= 0) return;
+                    const card = document.createElement("div");
+                    card.className = "card";
+                    card.innerHTML = `
+                        <img src="${p.imagen || 'https://via.placeholder.com/150'}">
+                        <h3>${p.nombre}</h3>
+                        <span>Q${p.precio}</span>
+                        <p>Disponibles: ${p.cantidad}</p>
+                    `;
+                    card.onclick = () => {
+                        productoActual = p;
+                        document.getElementById("modal").style.display = "flex";
+                        document.getElementById("imgModal").src = p.imagen;
+                        document.getElementById("tituloModal").innerText = p.nombre;
+                        document.getElementById("precioModal").innerText = "Q" + p.precio;
+                    };
+                    contenedor.appendChild(card);
                 });
-
-                // 🔹 DOBLE CLICK PARA COMPRAR
-                card.addEventListener("dblclick", () => abrirModal(p));
-
-                contenedor.appendChild(card);
-            });
-
-        } catch (error) {
-            console.error("Error cargando productos:", error);
-        }
-    }
-
-    // 🔹 ABRIR MODAL ORIGINAL
-    function abrirModal(p) {
-        productoActual = p;
-        document.getElementById("modal").style.display = "flex";
-        document.getElementById("tituloModal").innerText = p.nombre;
-        document.getElementById("descModal").innerText = p.descripcion || "Sin descripción";
-        document.getElementById("precioModal").innerText = "Q" + p.precio;
-        document.getElementById("imgModal").src = p.imagen || "https://via.placeholder.com/300";
-        document.getElementById("cantidadComprar").value = "";
-    }
-
-    // 🔹 COMPRAR (Conectado a Render)
-    async function comprar() {
-        if (!productoActual) return;
-
-        const cantidad = Number(document.getElementById("cantidadComprar").value);
-        if (!cantidad || cantidad <= 0) {
-            alert("Ingresa una cantidad válida");
-            return;
+            } catch (e) { console.error(e); }
         }
 
-        try {
-            const res = await fetch(`https://tienda-jesan.onrender.com/comprar/${productoActual.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ cantidad })
-            });
+        async function comprar() {
+            const cant = document.getElementById("cantidadComprar").value;
+            if (!cant || cant <= 0) return alert("Cantidad inválida");
 
-            const data = await res.json();
-            alert(data.mensaje);
-
-            if (res.ok) {
-                document.getElementById("modal").style.display = "none";
-                cargarProductos();
-            }
-        } catch (error) {
-            console.error("Error en compra:", error);
-            alert("Error conectando con el servidor");
+            try {
+                const res = await fetch(`https://tienda-jesan.onrender.com/comprar/${productoActual.id}`, {
+                    method: "PUT",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ cantidad: Number(cant) })
+                });
+                const resData = await res.json();
+                alert(resData.mensaje);
+                location.reload();
+            } catch (e) { alert("Error en compra"); }
         }
-    }
 
-    // 🔹 CERRAR MODAL
-    document.getElementById("modal").addEventListener("click", (e) => {
-        if (e.target.id === "modal") {
-            document.getElementById("modal").style.display = "none";
-        }
-    });
-
-    cargarProductos();
-</script>
-
+        cargarProductos();
+    </script>
 </body>
 </html>
