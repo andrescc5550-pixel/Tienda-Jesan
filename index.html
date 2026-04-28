@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="estilo.css">
 
     <style>
-        /* 🔹 ESTILO DE DESCRIPCIÓN RECAPTURADO */
+        
         .descripcion {
             display: none;
             font-size: 14px;
@@ -19,7 +19,7 @@
             display: block;
         }
 
-        /* Asegurar que el modal use tus clases de estilo.css */
+        
         #modal {
             display: none; 
             position: fixed; 
@@ -68,7 +68,7 @@
     const API = "https://tienda-jesan.onrender.com/productos";
     let productoActual = null;
 
-    // 🔹 CARGAR PRODUCTOS CON TU LÓGICA DE CLICS
+    // CARGAR PRODUCTOS CON LÓGICA DE CLICS
     async function cargarProductos() {
         try {
             const res = await fetch(API);
@@ -93,14 +93,14 @@
                     <p style="font-size: 11px; color: #888;">Stock: ${p.cantidad}</p>
                 `;
 
-                // 🔥 UN CLIC = MOSTRAR/OCULTAR DESCRIPCIÓN
+                // UN CLIC = MOSTRAR/OCULTAR DESCRIPCIÓN
                 card.addEventListener("click", (e) => {
                     if (e.target.tagName === 'BUTTON' || e.target.id === 'cantidadComprar') return;
                     const desc = card.querySelector(".descripcion");
                     desc.classList.toggle("activo");
                 });
 
-                // 🔥 DOBLE CLIC = ABRIR MODAL DE COMPRA
+                // DOBLE CLIC = ABRIR MODAL DE COMPRA
                 card.addEventListener("dblclick", () => abrirModal(p));
 
                 contenedor.appendChild(card);
@@ -111,7 +111,7 @@
         }
     }
 
-    // 🔹 ABRIR MODAL
+    // ABRIR MODAL
     function abrirModal(p) {
         productoActual = p;
         document.getElementById("modal").style.display = "flex";
@@ -122,7 +122,7 @@
         document.getElementById("cantidadComprar").value = "";
     }
 
-    // 🔹 COMPRAR (CONECTADO A RENDER/RAILWAY)
+    // COMPRAR (CONECTADO A RENDER/RAILWAY)
     async function comprar() {
         if (!productoActual) return;
 
@@ -151,7 +151,7 @@
         }
     }
 
-    // 🔹 CERRAR MODAL AL HACER CLIC FUERA
+    // CERRAR MODAL AL HACER CLIC FUERA
     document.getElementById("modal").addEventListener("click", (e) => {
         if (e.target.id === "modal") {
             document.getElementById("modal").style.display = "none";
