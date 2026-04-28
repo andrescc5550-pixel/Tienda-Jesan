@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// 🔥 CONEXIÓN PARA RAILWAY (Usa variables de entorno)
+// 🔥 CONEXIÓN PARA RAILWAY
 const db = mysql.createPool({
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
@@ -30,7 +30,7 @@ db.getConnection((err, connection) => {
   connection.release();
 });
 
-// RUTAS CRUD
+// 1. OBTENER PRODUCTOS
 app.get("/productos", (req, res) => {
   db.query("SELECT * FROM productos", (err, results) => {
     if (err) return res.status(500).json(err);
@@ -38,6 +38,7 @@ app.get("/productos", (req, res) => {
   });
 });
 
+// 2. CREAR PRODUCTO
 app.post("/productos", (req, res) => {
   const { nombre, precio, cantidad, imagen, descripcion } = req.body;
   db.query(
@@ -50,7 +51,21 @@ app.post("/productos", (req, res) => {
   );
 });
 
-// 🔥 RUTA PARA COMPRAR (Resta stock)
+// 3. 🔥 ACTUALIZAR PRODUCTO (Esta es la que te faltaba para el inventario)
+app.put("/productos/:id", (req, res) => {
+  const { nombre, precio, cantidad, imagen, descripcion } = req.body;
+  const { id } = req.params;
+  db.query(
+    "UPDATE productos SET nombre=?, precio=?, cantidad=?, imagen=?, descripcion=? WHERE id=?",
+    [nombre, precio, cantidad, imagen, descripcion, id],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json({ mensaje: "✅ Producto actualizado correctamente" });
+    }
+  );
+});
+
+// 4. RUTA PARA COMPRAR (Resta stock desde la tienda)
 app.put("/comprar/:id", (req, res) => {
   const { cantidad } = req.body;
   const { id } = req.params;
@@ -67,6 +82,7 @@ app.put("/comprar/:id", (req, res) => {
   );
 });
 
+// 5. ELIMINAR PRODUCTO
 app.delete("/productos/:id", (req, res) => {
   db.query("DELETE FROM productos WHERE id=?", [req.params.id], (err) => {
     if (err) return res.status(500).json(err);
