@@ -8,8 +8,16 @@
 <body>
   
 <script>
-if (!localStorage.getItem("auth")) {
-  window.location.href = "login.html";
+// 🔒 SEGURIDAD: Colocar esto al inicio de inventario.html
+if (localStorage.getItem("auth") !== "true") {
+    // Si no hay permiso, mándalos al login de inmediato
+    window.location.href = "login.html";
+}
+
+// Opcional: Función para cerrar sesión (puedes ponerla en un botón)
+function logout() {
+    localStorage.removeItem("auth");
+    window.location.href = "login.html";
 }
 </script>
 
