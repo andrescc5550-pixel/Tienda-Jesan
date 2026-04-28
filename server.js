@@ -13,7 +13,7 @@ app.use(express.static(__dirname));
 
 // 🔥 RUTA PRINCIPAL
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index-tienda.html"));
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 // 🔥 CONEXIÓN CORREGIDA
 const db = mysql.createConnection({
