@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Producto - Jesan</title>
+    <link rel="stylesheet" href="estilo.css">
+    <style>
+        .detalle-container {
+            display: flex;
+            gap: 40px;
+            padding: 40px;
+            max-width: 1100px;
+            margin: 0 auto;
+            align-items: flex-start;
+        }
+
+        .detalle-imagen {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .zoom-wrapper {
+            position: relative;
+            display: block;
+            width: 100%;
+            cursor: crosshair;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .zoom-wrapper img {
+            width: 100%;
+            display: block;
+            border-radius: 15px;
+        }
+
+        .lupa {
+            display: none;
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 3px solid #E2953D;
+            pointer-events: none;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.35);
+            background-repeat: no-repeat;
+        }
+
+        .zoom-hint {
+            text-align: center;
+            font-size: 13px;
+            color: #aaa;
+            margin-top: 10px;
+        }
+
+        .detalle-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding-top: 10px;
+        }
+
+        .detalle-info h2 {
+            font-size: 28px;
+            color: #2F4F6F;
+            margin: 0;
+        }
+
+        .detalle-desc {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .precio-detalle {
+            font-size: 32px;
+            font-weight: bold;
+            color: #E2953D;
+            margin: 0;
+        }
+
+        .stock-detalle {
+            color: #999;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        #cantidadComprar {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        #cantidadComprar:focus {
+            border-color: #E2953D;
+            box-shadow: 0 0 5px rgba(226,149,61,0.4);
+        }
+
+        @media (max-width: 768px) {
+            .detalle-container {
+                flex-direction: column;
+                padding: 20px;
+                gap: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <img src="img/jesan.png" class="logo">
+    <h1>JESAN</h1>
+</header>
+
+<div class="detalle-container">
+    <!-- IZQUIERDA: Imagen con lupa -->
+    <div class="detalle-imagen">
+        <div class="zoom-wrapper" id="zoomWrapper">
+            <img id="imgProducto" src="" alt="Imagen del producto">
+            <div class="lupa" id="lupa"></div>
+        </div>
+        <p class="zoom-hint">🔍 Pasa el cursor sobre la imagen para hacer zoom</p>
+    </div>
+
+    <!-- DERECHA: Info + Comprar -->
+    <div class="detalle-info">
+        <a href="index.html" class="btn-volver">← Volver a la tienda</a>
+        <h2 id="nombreProducto">Cargando...</h2>
+        <p class="detalle-desc" id="descProducto"></p>
+        <p class="precio-detalle" id="precioProducto"></p>
+        <p class="stock-detalle" id="stockProducto"></p>
+        <input type="number" id="cantidadComprar" placeholder="Cantidad a comprar" min="1">
+        <button class="btn-comprar" onclick="comprar()">Comprar</button>
+    </div>
+</div>
+
+<script>
+    const API = "https://tienda-jesan.onrender.com/productos";
+    let productoActual = null;
+
+    async function cargarProducto() {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
+        if (!id) { window.location.href = "index.html"; return; }
+
+        try {
+            const res = await fetch(API);
+            const data = await res.json();
+            const p = data.find(x => String(x.id) === String(id));
+            if (!p) { window.location.href = "index.html"; return; }
+
+            productoActual = p;
+            document.title = p.nombre + " - Jesan";
+            document.getElementById("imgProducto").src = p.imagen || "https://via.placeholder.com/500";
+            document.getElementById("nombreProducto").innerText = p.nombre;
+            document.getElementById("descProducto").innerText = p.descripcion || "Producto de alta calidad.";
+            document.getElementById("precioProducto").innerText = "Q" + p.precio;
+            document.getElementById("stockProducto").innerText = "Stock disponible: " + p.cantidad;
+
+            // Iniciar zoom después de cargar la imagen
+            document.getElementById("imgProducto").onload = initZoom;
+            // Si ya cargó (caché)
+            if (document.getElementById("imgProducto").complete) initZoom();
+
+        } catch (err) {
+            alert("Error al cargar el producto");
+        }
+    }
+
+    async function comprar() {
+        if (!productoActual) return;
+        const cantidad = Number(document.getElementById("cantidadComprar").value);
+        if (!cantidad || cantidad <= 0) { alert("Ingresa una cantidad válida"); return; }
+
+        try {
+            const res = await fetch(`https://tienda-jesan.onrender.com/comprar/${productoActual.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cantidad })
+            });
+            const data = await res.json();
+            alert(data.mensaje);
+            if (res.ok) cargarProducto();
+        } catch (error) {
+            alert("Error conectando con el servidor");
+        }
+    }
+
+    // LUPA DE ZOOM
+    function initZoom() {
+        const wrapper = document.getElementById("zoomWrapper");
+        const img = document.getElementById("imgProducto");
+        const lupa = document.getElementById("lupa");
+        const lupaSize = 160;
+        const zoom = 2.5;
+
+        wrapper.addEventListener("mousemove", (e) => {
+            const rect = wrapper.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+                lupa.style.display = "none";
+                return;
+            }
+
+            lupa.style.display = "block";
+            lupa.style.left = (x - lupaSize / 2) + "px";
+            lupa.style.top = (y - lupaSize / 2) + "px";
+
+            const bgX = (x / rect.width) * 100;
+            const bgY = (y / rect.height) * 100;
+
+            lupa.style.backgroundImage = `url(${img.src})`;
+            lupa.style.backgroundSize = `${rect.width * zoom}px ${rect.height * zoom}px`;
+            lupa.style.backgroundPosition = `${bgX}% ${bgY}%`;
+        });
+
+        wrapper.addEventListener("mouseleave", () => {
+            lupa.style.display = "none";
+        });
+    }
+
+    cargarProducto();
+</script>
+
+</body>
+</html>
