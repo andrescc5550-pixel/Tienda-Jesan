@@ -2,40 +2,69 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Panel Inventario</title>
+  <title>Panel Inventario - JESAN</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  
+
 <script>
-
-if (localStorage.getItem("auth") !== "true") {
-    // Si no hay permiso, mándalos al login de inmediato
-    window.location.href = "login.html";
-}
-
+const rol = localStorage.getItem("auth");
+if (!rol || rol === "false") window.location.href = "login.html";
 </script>
 
 <div class="container">
-  <h1>Panel de Inventario JESAN</h1>
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+    <h1>Panel de Inventario JESAN</h1>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="color:white; font-size:14px;">Rol: <strong id="rolLabel"></strong></span>
+      <button onclick="cerrarSesion()" style="background:#dc3545; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">Cerrar sesión</button>
+    </div>
+  </div>
 
-  <div class="card">
+  <!-- FORMULARIO — solo Admin -->
+  <div class="card" id="formulario-section" style="display:none;">
+    <h3 id="form-titulo">Agregar Producto</h3>
     <form id="formulario">
       <input type="text" id="nombre" placeholder="Nombre" required>
       <input type="number" id="precio" placeholder="Precio" required>
       <input type="number" id="cantidad" placeholder="Cantidad" required>
-
-      
       <input type="text" id="imagen" placeholder="URL de imagen (https://...)">
-
       <input type="text" id="descripcion" placeholder="Descripción del producto">
-      <button class="btn-agregar" type="submit">Guardar</button>
+      <button class="btn-agregar" type="submit" id="btn-guardar">Guardar</button>
+      <button type="button" onclick="cancelarEdicion()" id="btn-cancelar"
+        style="display:none; background:#6c757d; color:white; padding:10px 15px; border:none; border-radius:6px; cursor:pointer; margin-left:5px;">
+        Cancelar
+      </button>
     </form>
   </div>
 
+  <!-- TABLA DE PRODUCTOS -->
   <div class="card">
     <h3>Productos</h3>
-    <div id="lista"></div>
+    <div style="overflow-x:auto;">
+      <table class="tabla-inventario">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Cantidad</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="lista"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GESTIÓN DE VENDEDORES — solo Admin -->
+  <div class="card" id="vendedores-section" style="display:none;">
+    <h3>👥 Gestionar Vendedores</h3>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
+      <input type="text" id="v-usuario" placeholder="Usuario vendedor" style="flex:1; min-width:150px; padding:10px; border-radius:6px; border:1px solid #ccc;">
+      <input type="password" id="v-password" placeholder="Contraseña" style="flex:1; min-width:150px; padding:10px; border-radius:6px; border:1px solid #ccc;">
+      <button onclick="agregarVendedor()" style="background:#2F4F6F; color:white; padding:10px 15px; border:none; border-radius:6px; cursor:pointer;">Agregar Vendedor</button>
+    </div>
+    <div id="lista-vendedores"></div>
   </div>
 </div>
 
