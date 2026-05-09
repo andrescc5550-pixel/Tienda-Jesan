@@ -8,8 +8,9 @@
 <body>
 
 <script>
-const rol = localStorage.getItem("auth");
-if (!rol || rol === "false") window.location.href = "login.html";
+if (!localStorage.getItem("auth") || localStorage.getItem("auth") === "false") {
+    window.location.href = "login.html";
+}
 </script>
 
 <div class="container">
