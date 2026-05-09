@@ -5,34 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jesan GT</title>
     <link rel="stylesheet" href="estilo.css">
-
     <style>
-        
-        .descripcion {
-            display: none;
-            font-size: 14px;
-            color: #555;
-            margin: 10px 0;
-        }
-
-        .descripcion.activo {
-            display: block;
-        }
-
-        
-        #modal {
-            display: none; 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.8); 
-            align-items: center; 
-            justify-content: center;
-            z-index: 1000;
-        }
+        .descripcion { display: none; font-size: 14px; color: #555; margin: 10px 0; }
+        .descripcion.activo { display: block; }
     </style>
 </head>
-
 <body>
 
 <header class="header">
@@ -52,28 +29,13 @@
     </div>
 </main>
 
-<div class="modal" id="modal">
-    <div class="modal-content">
-        <img id="imgModal">
-        <h2 id="tituloModal"></h2>
-        <p id="descModal" style="margin: 10px 0; color: #666;"></p>
-        <p id="precioModal" style="font-weight: bold; font-size: 1.2em;"></p>
-
-        <input type="number" id="cantidadComprar" placeholder="Cantidad">
-        <button class="btn-comprar" onclick="comprar()">Comprar</button>
-    </div>
-</div>
-
 <script>
     const API = "https://tienda-jesan.onrender.com/productos";
-    let productoActual = null;
 
-    // CARGAR PRODUCTOS CON LÓGICA DE CLICS
     async function cargarProductos() {
         try {
             const res = await fetch(API);
             const data = await res.json();
-
             const contenedor = document.getElementById("productos");
             contenedor.innerHTML = "";
 
@@ -82,26 +44,20 @@
 
                 const card = document.createElement("div");
                 card.className = "card";
+                card.style.cursor = "pointer";
 
                 card.innerHTML = `
                     <img src="${p.imagen || 'https://via.placeholder.com/300'}">
                     <h3>${p.nombre}</h3>
-                    
-                    <p class="descripcion">${p.descripcion || "Producto de alta calidad"}</p>
-                    
                     <span>Q${p.precio}</span>
                     <p style="font-size: 11px; color: #888;">Stock: ${p.cantidad}</p>
+                    <p style="font-size: 12px; color: #aaa; margin-top:6px;">Toca para ver detalle</p>
                 `;
 
-                // UN CLIC = MOSTRAR/OCULTAR DESCRIPCIÓN
-                card.addEventListener("click", (e) => {
-                    if (e.target.tagName === 'BUTTON' || e.target.id === 'cantidadComprar') return;
-                    const desc = card.querySelector(".descripcion");
-                    desc.classList.toggle("activo");
+                // UN CLIC → Ir a página de detalle
+                card.addEventListener("click", () => {
+                    window.location.href = `producto.html?id=${p.id}`;
                 });
-
-                // DOBLE CLIC = ABRIR MODAL DE COMPRA
-                card.addEventListener("dblclick", () => abrirModal(p));
 
                 contenedor.appendChild(card);
             });
@@ -110,53 +66,6 @@
             console.error("Error cargando productos:", error);
         }
     }
-
-    // ABRIR MODAL
-    function abrirModal(p) {
-        productoActual = p;
-        document.getElementById("modal").style.display = "flex";
-        document.getElementById("tituloModal").innerText = p.nombre;
-        document.getElementById("descModal").innerText = p.descripcion || "Sin descripción";
-        document.getElementById("precioModal").innerText = "Q" + p.precio;
-        document.getElementById("imgModal").src = p.imagen || "https://via.placeholder.com/300";
-        document.getElementById("cantidadComprar").value = "";
-    }
-
-    // COMPRAR (CONECTADO A RENDER/RAILWAY)
-    async function comprar() {
-        if (!productoActual) return;
-
-        const cantidad = Number(document.getElementById("cantidadComprar").value);
-        if (!cantidad || cantidad <= 0) {
-            alert("Ingresa una cantidad válida");
-            return;
-        }
-
-        try {
-            const res = await fetch(`https://tienda-jesan.onrender.com/comprar/${productoActual.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ cantidad })
-            });
-
-            const data = await res.json();
-            alert(data.mensaje);
-
-            if (res.ok) {
-                document.getElementById("modal").style.display = "none";
-                cargarProductos(); // Recarga para actualizar el stock visualmente
-            }
-        } catch (error) {
-            alert("Error conectando con el servidor");
-        }
-    }
-
-    // CERRAR MODAL AL HACER CLIC FUERA
-    document.getElementById("modal").addEventListener("click", (e) => {
-        if (e.target.id === "modal") {
-            document.getElementById("modal").style.display = "none";
-        }
-    });
 
     cargarProductos();
 </script>
