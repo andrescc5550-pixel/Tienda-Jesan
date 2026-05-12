@@ -47,11 +47,8 @@
                 card.style.cursor = "pointer";
 
                 card.innerHTML = `
-                    <img src="${p.imagen || 'https://via.placeholder.com/300'}">
-                    <h3>${p.nombre}</h3>
-                    <span>Q${p.precio}</span>
-                    <p style="font-size: 11px; color: #888;">Stock: ${p.cantidad}</p>
-                    <p style="font-size: 12px; color: #aaa; margin-top:6px;">Toca para ver detalle</p>
+                <img src="${p.imagen || 'https://via.placeholder.com/300'}">
+                <h3>${p.nombre}</h3>
                 `;
 
                 // UN CLIC → Ir a página de detalle
