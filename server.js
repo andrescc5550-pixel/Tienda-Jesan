@@ -1,101 +1,136 @@
 const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
-const path = require("path");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
 
-// 🔥 CONEXIÓN PARA RAILWAY
-const db = mysql.createPool({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  port: Number(process.env.MYSQLPORT) || 3306,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+// 🔌 CONEXIÓN HÍBRIDA PARA AIVEN (PRODUCCIÓN) Y LOCAL
+const dbUrl = process.env.DATABASE_URL;
 
-db.getConnection((err, connection) => {
+const db = dbUrl 
+  ? mysql.createConnection(dbUrl)
+  : mysql.createConnection({
+      host: process.env.MYSQLHOST || "localhost",
+      user: process.env.MYSQLUSER || "root",
+      password: process.env.MYSQLPASSWORD || "",
+      database: process.env.MYSQLDATABASE || "test",
+      port: process.env.MYSQLPORT || 3306
+    });
+
+db.connect(err => {
   if (err) {
-    console.error("❌ Error al conectar a Railway:", err);
+    console.error("❌ Error al conectar a la base de datos:", err);
     return;
   }
-  console.log("✅ Conectado a la base de datos de Railway");
-  connection.release();
+  console.log("✅ Conectado exitosamente a la base de datos");
 });
 
-// 1. OBTENER PRODUCTOS
+// 🔹 GET - Obtener productos
 app.get("/productos", (req, res) => {
   db.query("SELECT * FROM productos", (err, results) => {
-    if (err) return res.status(500).json(err);
+    if (err) {
+      console.error(err);
+      return res.status(500).json(err);
+    }
     res.json(results);
   });
 });
 
-// 2. CREAR PRODUCTO
+// 🔹 POST - Crear producto
 app.post("/productos", (req, res) => {
   const { nombre, precio, cantidad, imagen, descripcion } = req.body;
+
   db.query(
     "INSERT INTO productos (nombre, precio, cantidad, imagen, descripcion) VALUES (?, ?, ?, ?, ?)",
     [nombre, precio, cantidad, imagen, descripcion],
     (err, result) => {
-      if (err) return res.status(500).json(err);
+      if (err) {
+        console.error(err);
+        return res.status(500).json(err);
+      }
       res.json({ id: result.insertId });
     }
   );
 });
 
-// 3. 🔥 ACTUALIZAR PRODUCTO (Esta es la que te faltaba para el inventario)
+// 🔹 PUT - Actualizar producto
 app.put("/productos/:id", (req, res) => {
   const { nombre, precio, cantidad, imagen, descripcion } = req.body;
-  const { id } = req.params;
 
-  // Usamos una consulta que ignora errores de columnas opcionales
   db.query(
     "UPDATE productos SET nombre=?, precio=?, cantidad=?, imagen=?, descripcion=? WHERE id=?",
-    [nombre, precio, cantidad, imagen, descripcion || "", id],
-    (err, result) => {
+    [nombre, precio, cantidad, imagen, descripcion, req.params.id],
+    (err) => {
       if (err) {
-        console.error("❌ Error en MySQL:", err);
-        return res.status(500).json({ error: err.message });
+        console.error(err);
+        return res.status(500).json(err);
       }
-      res.json({ mensaje: "✅ Producto actualizado correctamente" });
+      res.json({ mensaje: "Actualizado" });
     }
   );
 });
 
-// 4. RUTA PARA COMPRAR (Resta stock desde la tienda)
+// 🔹 DELETE - Eliminar producto
+app.delete("/productos/:id", (req, res) => {
+  db.query(
+    "DELETE FROM productos WHERE id=?",
+    [req.params.id],
+    (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json(err);
+      }
+      res.json({ mensaje: "Eliminado" });
+    }
+  );
+});
+
+// 🛒 COMPRAR - Restar stock
 app.put("/comprar/:id", (req, res) => {
   const { cantidad } = req.body;
-  const { id } = req.params;
+
   db.query(
-    "UPDATE productos SET cantidad = cantidad - ? WHERE id = ? AND cantidad >= ?",
-    [cantidad, id, cantidad],
+    "SELECT cantidad FROM productos WHERE id = ?",
+    [req.params.id],
     (err, result) => {
-      if (err) return res.status(500).json(err);
-      if (result.affectedRows === 0) {
-        return res.status(400).json({ mensaje: "No hay suficiente stock" });
+      if (err) {
+        console.error(err);
+        return res.status(500).json(err);
       }
-      res.json({ mensaje: "✅ Compra exitosa" });
+
+      if (!result || result.length === 0) {
+        return res.json({ mensaje: "Producto no encontrado" });
+      }
+
+      const stock = result[0].cantidad;
+
+      if (cantidad > stock) {
+        return res.json({ mensaje: "No hay suficiente stock" });
+      }
+
+      const nuevoStock = stock - cantidad;
+
+      db.query(
+        "UPDATE productos SET cantidad = ? WHERE id = ?",
+        [nuevoStock, req.params.id],
+        (err2) => {
+          if (err2) {
+            console.error(err2);
+            return res.status(500).json(err2);
+          }
+
+          res.json({ mensaje: "Compra realizada correctamente" });
+        }
+      );
     }
   );
 });
 
-// 5. ELIMINAR PRODUCTO
-app.delete("/productos/:id", (req, res) => {
-  db.query("DELETE FROM productos WHERE id=?", [req.params.id], (err) => {
-    if (err) return res.status(500).json(err);
-    res.json({ mensaje: "Eliminado" });
-  });
-});
-
+// 🔹 SERVIDOR (Puerto dinámico para Render)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor en puerto ${PORT}`);
+  console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
 });
