@@ -144,7 +144,8 @@
 </div>
 
 <script>
-    const API = "https://tienda-jesan.onrender.com/productos";
+    const BACKEND_URL = window.location.origin;
+    const API = `${BACKEND_URL}/productos`;
     let productoActual = null;
 
     async function cargarProducto() {
@@ -153,10 +154,9 @@
         if (!id) { window.location.href = "index.html"; return; }
 
         try {
-            const res = await fetch(API);
-            const data = await res.json();
-            const p = data.find(x => String(x.id) === String(id));
-            if (!p) { window.location.href = "index.html"; return; }
+            const res = await fetch(`${API}/${id}`);
+            const p = await res.json();
+            if (!p || !p.id) { window.location.href = "index.html"; return; }
 
             productoActual = p;
             document.title = p.nombre + " - Jesan";
@@ -166,9 +166,7 @@
             document.getElementById("precioProducto").innerText = "Q" + p.precio;
             document.getElementById("stockProducto").innerText = "Stock disponible: " + p.cantidad;
 
-            // Iniciar zoom después de cargar la imagen
             document.getElementById("imgProducto").onload = initZoom;
-            // Si ya cargó (caché)
             if (document.getElementById("imgProducto").complete) initZoom();
 
         } catch (err) {
@@ -182,20 +180,19 @@
         if (!cantidad || cantidad <= 0) { alert("Ingresa una cantidad válida"); return; }
 
         try {
-            const res = await fetch(`https://tienda-jesan.onrender.com/comprar/${productoActual.id}`, {
+            const res = await fetch(`${BACKEND_URL}/comprar/${productoActual.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ cantidad })
             });
             const data = await res.json();
             alert(data.mensaje);
-            if (res.ok) cargarProducto();
+            if (data.mensaje === "Compra realizada correctamente") cargarProducto();
         } catch (error) {
             alert("Error conectando con el servidor");
         }
     }
 
-    // LUPA DE ZOOM
     function initZoom() {
         const wrapper = document.getElementById("zoomWrapper");
         const img = document.getElementById("imgProducto");
@@ -232,6 +229,3 @@
 
     cargarProducto();
 </script>
-
-</body>
-</html>
