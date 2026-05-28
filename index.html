@@ -30,41 +30,33 @@
 </main>
 
 <script>
-    const API = "https://tienda-jesan.onrender.com/productos";
+  const API = window.location.origin + "/productos";
 
-    async function cargarProductos() {
-        try {
-            const res = await fetch(API);
-            const data = await res.json();
-            const contenedor = document.getElementById("productos");
-            contenedor.innerHTML = "";
-
-            data.forEach(p => {
-                if (Number(p.cantidad) <= 0) return;
-
-                const card = document.createElement("div");
-                card.className = "card";
-                card.style.cursor = "pointer";
-
-                card.innerHTML = `
-                <img src="${p.imagen || 'https://via.placeholder.com/300'}">
-                <h3>${p.nombre}</h3>
-                `;
-
-                // UN CLIC → Ir a página de detalle
-                card.addEventListener("click", () => {
-                    window.location.href = `producto.html?id=${p.id}`;
-                });
-
-                contenedor.appendChild(card);
-            });
-
-        } catch (error) {
-            console.error("Error cargando productos:", error);
-        }
+  async function cargarProductos() {
+    try {
+      const res = await fetch(API);
+      const data = await res.json();
+      const contenedor = document.getElementById("productos");
+      contenedor.innerHTML = "";
+      data.forEach(p => {
+        if (Number(p.cantidad) <= 0) return;
+        const card = document.createElement("div");
+        card.className = "card";
+        card.style.cursor = "pointer";
+        card.innerHTML = `
+          <img src="${p.imagen || 'https://via.placeholder.com/300'}">
+          <h3>${p.nombre}</h3>
+        `;
+        card.addEventListener("click", () => {
+          window.location.href = `producto.html?id=${p.id}`;
+        });
+        contenedor.appendChild(card);
+      });
+    } catch (error) {
+      console.error("Error cargando productos:", error);
     }
-
-    cargarProductos();
+  }
+  cargarProductos();
 </script>
 
 </body>
