@@ -44,7 +44,7 @@ const db = dbUrl
 db.connect(err => {
   if (err) {
     console.error("❌ Error al conectar a la base de datos:", err);
-    return;
+    process.exit(1);
   }
   console.log("✅ Conectado exitosamente a la base de datos");
 
@@ -57,7 +57,13 @@ db.connect(err => {
       imagen TEXT,
       descripcion TEXT
     )
-  `, err => { if (err) console.error("Error tabla productos:", err); });
+  `, (err) => {
+    if (err) {
+      console.error("❌ Error creando tabla productos:", err);
+    } else {
+      console.log("✅ Tabla productos lista");
+    }
+  });
 
   db.query(`
     CREATE TABLE IF NOT EXISTS mensajes (
@@ -66,7 +72,13 @@ db.connect(err => {
       mensaje TEXT,
       fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
-  `, err => { if (err) console.error("Error tabla mensajes:", err); });
+  `, (err) => {
+    if (err) {
+      console.error("❌ Error creando tabla mensajes:", err);
+    } else {
+      console.log("✅ Tabla mensajes lista");
+    }
+  });
 });
 
 // GET - Todos los productos
