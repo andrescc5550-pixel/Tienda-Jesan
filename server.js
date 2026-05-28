@@ -31,55 +31,50 @@ app.get("/producto", (req, res) => {
 // Conexión a base de datos
 const dbUrl = process.env.DATABASE_URL;
 
-const db = dbUrl
-  ? mysql.createConnection(dbUrl + "?ssl-mode=REQUIRED")
-  : mysql.createConnection({
+const poolConfig = dbUrl
+  ? { uri: dbUrl, ssl: { rejectUnauthorized: false }, waitForConnections: true, connectionLimit: 10 }
+  : {
       host: process.env.MYSQLHOST || "localhost",
       user: process.env.MYSQLUSER || "root",
       password: process.env.MYSQLPASSWORD || "",
       database: process.env.MYSQLDATABASE || "test",
-      port: process.env.MYSQLPORT || 3306
-    });
+      port: process.env.MYSQLPORT || 3306,
+      waitForConnections: true,
+      connectionLimit: 10
+    };
 
-db.connect(err => {
-  if (err) {
-    console.error("❌ Error al conectar a la base de datos:", err);
-    process.exit(1);
-  }
-  console.log("✅ Conectado exitosamente a la base de datos");
+const db = dbUrl
+  ? mysql.createPool({ uri: dbUrl, ssl: { rejectUnauthorized: false }, waitForConnections: true, connectionLimit: 10 })
+  : mysql.createPool(poolConfig);
 
-  db.query(`
-    CREATE TABLE IF NOT EXISTS productos (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      nombre VARCHAR(255) NOT NULL,
-      precio DECIMAL(10,2) NOT NULL,
-      cantidad INT NOT NULL DEFAULT 0,
-      imagen TEXT,
-      descripcion TEXT
-    )
-  `, (err) => {
-    if (err) {
-      console.error("❌ Error creando tabla productos:", err);
-    } else {
-      console.log("✅ Tabla productos lista");
-    }
-  });
-
-  db.query(`
-    CREATE TABLE IF NOT EXISTS mensajes (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      nombre VARCHAR(255),
-      mensaje TEXT,
-      fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `, (err) => {
-    if (err) {
-      console.error("❌ Error creando tabla mensajes:", err);
-    } else {
-      console.log("✅ Tabla mensajes lista");
-    }
-  });
+// Crear tablas al iniciar
+db.query(`
+  CREATE TABLE IF NOT EXISTS productos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    precio DECIMAL(10,2) NOT NULL,
+    cantidad INT NOT NULL DEFAULT 0,
+    imagen TEXT,
+    descripcion TEXT
+  )
+`, (err) => {
+  if (err) console.error("❌ Error creando tabla productos:", err);
+  else console.log("✅ Tabla productos lista");
 });
+
+db.query(`
+  CREATE TABLE IF NOT EXISTS mensajes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(255),
+    mensaje TEXT,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`, (err) => {
+  if (err) console.error("❌ Error creando tabla mensajes:", err);
+  else console.log("✅ Tabla mensajes lista");
+});
+
+console.log("✅ Pool de conexiones creado");
 
 // GET - Todos los productos
 app.get("/productos", (req, res) => {
