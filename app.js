@@ -153,7 +153,6 @@ async function restarStock(id) {
   }
 }
 
-// Gestión de vendedores (localStorage)
 function cargarVendedores() {
   if (localStorage.getItem("auth") !== "admin") return;
   const vendedores = JSON.parse(localStorage.getItem("vendedores") || "[]");
@@ -162,14 +161,36 @@ function cargarVendedores() {
   lista.innerHTML = vendedores.length === 0
     ? "<p style='color:#aaa'>No hay vendedores registrados</p>"
     : vendedores.map((v, i) => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #eee;">
-          <span style="color:white">👤 ${v.usuario}</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <span style="color:white; font-size:14px;">👤 <strong>${v.usuario}</strong></span>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="color:#ccc; font-size:13px;" id="pass-${i}">••••••••</span>
+              <button onclick="togglePass(${i})" id="btn-pass-${i}"
+                style="background:none; border:none; cursor:pointer; color:#aaa; font-size:16px; padding:0;">
+                👁
+              </button>
+            </div>
+          </div>
           <button onclick="eliminarVendedor(${i})"
             style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">
             Eliminar
           </button>
         </div>
       `).join("");
+}
+
+function togglePass(index) {
+  const vendedores = JSON.parse(localStorage.getItem("vendedores") || "[]");
+  const span = document.getElementById(`pass-${index}`);
+  const btn = document.getElementById(`btn-pass-${index}`);
+  if (span.textContent === "••••••••") {
+    span.textContent = vendedores[index].password;
+    btn.textContent = "🙈";
+  } else {
+    span.textContent = "••••••••";
+    btn.textContent = "👁";
+  }
 }
 
 function agregarVendedor() {
